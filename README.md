@@ -1,2 +1,1 @@
-# hw-businessArc
- 
+# BusinessArchitecture
