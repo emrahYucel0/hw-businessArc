@@ -1,5 +1,6 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
+using Core.Aspects.Autofac.Transaction;
 using DataAccess.Abstracts;
 using DataAccess.Concretes;
 using Entities.DTOs;
@@ -56,7 +57,7 @@ public class OrderManager : IOrderService
         });
         return addedOrder;
     }
-
+    [TransactionScopeAspect]
     public async Task<Order> AddAsync(AddOrderDto addOrderDto)
     {
         await _orderValidations.CheckProductListCount(addOrderDto);
@@ -122,7 +123,7 @@ public class OrderManager : IOrderService
     {
         return _orderRepository.Update(order);
     }
-
+    [TransactionScopeAspect]
     public async Task<Order> UpdateAsync(Order order)
     {
         return await _orderRepository.UpdateAsync(order);
