@@ -4,6 +4,7 @@ using Business.Validations;
 using DataAccess.Abstracts;
 using Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Core.Aspects.Autofac.Logging;
 
 namespace Business.Concretes;
 
@@ -45,6 +46,9 @@ public class UserManager : IUserService
         return _userRepository.GetAll().ToList();
     }
 
+    [DebugWriteAspect(Message = "Kullanıcı listeleme başlatıldı")]
+    [DebugWriteSuccessAspect(Priority = 1, Message = "Kullanıcı listeleme tamamlandı")]
+    [DebugWriteSuccessAspect(Priority = 2, Message = "Kullanıcı listeleme Test")]
     public async Task<IList<User>> GetAllAsync()
     {
         var result= await _userRepository.GetAllAsync();

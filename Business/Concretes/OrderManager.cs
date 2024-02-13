@@ -2,6 +2,7 @@
 using Business.Validations;
 using DataAccess.Abstracts;
 using DataAccess.Concretes;
+using Entities.DTOs;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
@@ -13,22 +14,73 @@ namespace Business.Concretes;
 
 public class OrderManager : IOrderService
 {
-    public readonly IOrderRepository _orderRepository;
-    public readonly OrderValidations _orderValidations;
+    private readonly IOrderRepository _orderRepository;
+    private readonly OrderValidations _orderValidations;
+    private readonly IProductTransactionService _productTransactionService;
+    private readonly IOrderDetailService _orderDetailService;
 
-    public OrderManager(IOrderRepository orderRepository, OrderValidations orderValidations)
+    public OrderManager(
+        IOrderRepository orderRepository, 
+        OrderValidations orderValidations, 
+        IProductTransactionService productTransactionService,
+        IOrderDetailService orderDetailService
+        )
     {
         _orderRepository = orderRepository;
         _orderValidations = orderValidations;
+        _productTransactionService = productTransactionService;
+        _orderDetailService = orderDetailService;
     }
-    public Order Add(Order order)
+    public Order Add(AddOrderDto addOrderDto)
     {
-        return _orderRepository.Add(order);
+        _orderValidations.CheckProductListCount(addOrderDto);
+        _orderValidations.CheckTransactionCount(addOrderDto);
+        _orderValidations.CheckStock(addOrderDto);
+
+        var addedOrder = _orderRepository.Add(new()
+        {
+            UserId = addOrderDto.UserId,
+            CreatedDate = DateTime.UtcNow
+        });
+
+        addOrderDto.ProductTransactions.ToList().ForEach(productTransaction =>
+        {
+            productTransaction.Quantity = productTransaction.Quantity > 0 ? -1 * productTransaction.Quantity : productTransaction.Quantity;
+            var addedProductTransaction = _productTransactionService.Add(productTransaction);
+            _orderDetailService.Add(new()
+            {
+                OrderId = addedOrder.Id,
+                ProductId = productTransaction.ProductId,
+                ProductTransactionId = addedProductTransaction.Id
+            });
+        });
+        return addedOrder;
     }
 
-    public async Task<Order> AddAsync(Order order)
+    public async Task<Order> AddAsync(AddOrderDto addOrderDto)
     {
-        return await _orderRepository.AddAsync(order);
+        await _orderValidations.CheckProductListCount(addOrderDto);
+        await _orderValidations.CheckTransactionCount(addOrderDto);
+        await _orderValidations.CheckStock(addOrderDto);
+
+        var addedOrder = await _orderRepository.AddAsync(new()
+        {
+            UserId = addOrderDto.UserId,
+            CreatedDate = DateTime.UtcNow
+        });
+
+        addOrderDto.ProductTransactions.ToList().ForEach(productTransaction =>
+        {
+            productTransaction.Quantity = productTransaction.Quantity > 0 ? -1 * productTransaction.Quantity : productTransaction.Quantity;
+            var addedProductTransaction = _productTransactionService.Add(productTransaction);
+            _orderDetailService.Add(new()
+            {
+                OrderId = addedOrder.Id,
+                ProductId = productTransaction.ProductId,
+                ProductTransactionId = addedProductTransaction.Id
+            });
+        });
+        return addedOrder;
     }
 
     public void DeleteById(Guid id)

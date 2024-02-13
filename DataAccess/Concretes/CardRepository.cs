@@ -1,5 +1,6 @@
 ﻿using Core.Repository;
 using DataAccess.Abstracts;
+using DataAccess.Contexts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,7 +13,7 @@ namespace DataAccess.Concretes;
 
 public class CardRepository : Repository<Card>, ICardRepository
 {
-    public CardRepository(DbContext context) : base(context)
+    public CardRepository(BusinessDbContext context) : base(context)
     {
     }
 }

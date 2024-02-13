@@ -18,6 +18,16 @@ public class BusinessDbContext:DbContext
         var connectionString = Configuration.GetValue<string>("ConnectionStrings:Production");
         optionsBuilder.UseSqlServer(connectionString);
     }
+
+    //public BusinessDbContext()
+    //{
+
+    //}
+
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    optionsBuilder.UseSqlServer("Server=DESKTOP-A25H2AM\\SQLEXPRESS; Database=BusinessSimple; Integrated Security=True; TrustServerCertificate=true;");
+    //}
     public DbSet<User> Users { get; set; }
     public DbSet<CardType> CardTypes { get; set; }
     public DbSet<Card> Cards { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Business.Abstracts;
+using Entities.DTOs;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,9 +32,9 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<IActionResult> Add([FromBody] Order order)
+        public async Task<IActionResult> Add([FromBody] AddOrderDto addOrderDto)
         {
-            return Ok(await _orderService.AddAsync(order));
+            return Ok(await _orderService.AddAsync(addOrderDto));
         }
 
         [HttpPut("Update")]

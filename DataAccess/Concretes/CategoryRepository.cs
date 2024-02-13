@@ -1,5 +1,6 @@
 ﻿using Core.Repository;
 using DataAccess.Abstracts;
+using DataAccess.Contexts;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,7 +13,7 @@ namespace DataAccess.Concretes;
 
 public class CategoryRepository : Repository<Category>, ICategoryRepository
 {
-    public CategoryRepository(DbContext context) : base(context)
+    public CategoryRepository(BusinessDbContext context) : base(context)
     {
     }
 }

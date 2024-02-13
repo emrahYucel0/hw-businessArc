@@ -17,7 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repository\" />
-    <Folder Include="Utilities\" />
     <Folder Include="Utilities\Security\" />
     <Folder Include="Utilities\Security\JWT\" />
     <Folder Include="Entities\" />
@@ -25,6 +24,9 @@
     <Folder Include="Utilities\Security\Models\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="8.0.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Autofac.Extras.DynamicProxy" Version="7.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.15" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
