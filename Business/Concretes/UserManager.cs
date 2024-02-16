@@ -6,6 +6,8 @@ using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Core.Aspects.Autofac.Logging;
 using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Validation;
 
 namespace Business.Concretes;
 
@@ -18,16 +20,21 @@ public class UserManager : IUserService
         _userRepository = userRepository;
         _userValidations = userValidations;
     }
+
+    [ValidationAspect(typeof(AddUserValidations))]
+    [CacheRemoveAspect("Business.Abstracts.IUserService.GetAllAsync")]
     public User Add(User user)
     {
         return _userRepository.Add(user);
     }
 
+    [ValidationAspect(typeof(AddUserValidations))]
     public async Task<User> AddAsync(User user)
     {
         return await _userRepository.AddAsync(user);
     }
 
+    [ValidationAspect(typeof(DeleteValidations))]
     public void DeleteById(Guid id)
     {
         var user=_userRepository.Get(u=>u.Id==id);
@@ -35,6 +42,8 @@ public class UserManager : IUserService
         _userRepository.Delete(user);
     }
 
+    [ValidationAspect(typeof(DeleteValidations))]
+    [CacheRemoveAspect("Business.Abstracts.IUserService.GetAllAsync")]
     public async Task DeleteByIdAsync(Guid id)
     {
         var user = _userRepository.Get(u => u.Id == id);
@@ -46,6 +55,8 @@ public class UserManager : IUserService
     {
         return _userRepository.GetAll().ToList();
     }
+
+    [CacheAspect(1)]
     [PerformanceAspect(0)]
     [DebugWriteAspect(Message = "Kullanıcı listeleme başlatıldı")]
     [DebugWriteSuccessAspect(Message = "Kullanıcı listeleme tamamlandı")]
@@ -98,11 +109,14 @@ public class UserManager : IUserService
         return await _userRepository.GetAsync(u => u.Id == id);
     }
 
+    [ValidationAspect(typeof(UpdateUserValidations))]
     public User Update(User user)
     {
         return _userRepository.Update(user);
     }
 
+    [ValidationAspect(typeof(UpdateUserValidations))]
+    [CacheRemoveAspect("Business.Abstracts.IUserService.GetAllAsync")]
     public async Task<User> UpdateAsync(User user)
     {
        return await _userRepository.UpdateAsync(user);

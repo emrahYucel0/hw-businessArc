@@ -1,17 +1,13 @@
-﻿using Business.Abstracts;
-using Business.Tools.Exceptions;
+﻿using Business.Tools.Exceptions;
+using Core.CrossCuttingConcerns.Validation;
 using DataAccess.Abstracts;
 using Entities.DTOs;
 using Entities.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Business.Validations;
 
-public class OrderValidations
+public class OrderValidations:BaseValidation
 {
     private readonly IProductTransactionRepository _productTransactionRepository;
     public OrderValidations(IProductTransactionRepository productTransactionRepository)
@@ -56,5 +52,31 @@ public class OrderValidations
         {
             throw new ValidationException("We have not any product stock");
         }
+    }
+}
+
+public class AddOrderValidations : OrderValidations
+{
+    public AddOrderValidations(IProductTransactionRepository productTransactionRepository) : base(productTransactionRepository)
+    {
+    }
+
+}
+
+public class DeleteOrderValidations : BaseValidation
+{
+    protected readonly IOrderRepository _orderRepository;
+    public DeleteOrderValidations(IOrderRepository orderRepository)
+    {
+        _orderRepository = orderRepository;
+    }
+    public async Task OrderNotFound(Guid id)
+    {
+        var dbOrder = await _orderRepository.GetAsync(u => u.Id == id);
+        if (dbOrder == null)
+        {
+            throw new ValidationException("Order not found.", 400);
+        }
+        await Task.CompletedTask;
     }
 }

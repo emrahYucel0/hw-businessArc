@@ -1,15 +1,14 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Logging;
+using Core.Aspects.Autofac.Performance;
 using Core.Aspects.Autofac.Transaction;
+using Core.Aspects.Autofac.Validation;
 using DataAccess.Abstracts;
-using DataAccess.Concretes;
 using Entities.DTOs;
 using Entities.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Business.Concretes;
 
@@ -32,11 +31,13 @@ public class OrderManager : IOrderService
         _productTransactionService = productTransactionService;
         _orderDetailService = orderDetailService;
     }
+
+    [ValidationAspect(typeof(AddOrderValidations))]
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Order added.")]
     public Order Add(AddOrderDto addOrderDto)
     {
-        _orderValidations.CheckProductListCount(addOrderDto);
-        _orderValidations.CheckTransactionCount(addOrderDto);
-        _orderValidations.CheckStock(addOrderDto);
 
         var addedOrder = _orderRepository.Add(new()
         {
@@ -57,7 +58,11 @@ public class OrderManager : IOrderService
         });
         return addedOrder;
     }
+
+    [ValidationAspect(typeof(AddOrderValidations))]
     [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Order added.")]
     public async Task<Order> AddAsync(AddOrderDto addOrderDto)
     {
         await _orderValidations.CheckProductListCount(addOrderDto);
@@ -84,6 +89,9 @@ public class OrderManager : IOrderService
         return addedOrder;
     }
 
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [ValidationAspect(typeof(DeleteOrderValidations))]
+    [DebugWriteSuccessAspect(Message = "Order deleted.")]
     public void DeleteById(Guid id)
     {
         var order = _orderRepository.Get(o => o.Id == id);
@@ -91,18 +99,28 @@ public class OrderManager : IOrderService
         _orderRepository.Delete(order);
     }
 
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [ValidationAspect(typeof(DeleteOrderValidations))]
+    [DebugWriteSuccessAspect(Message = "Order deleted.")]
     public async Task DeleteByIdAsync(Guid id)
     {
         var order = _orderRepository.Get(o => o.Id == id);
-        await _orderValidations.OrderMustNotBeEmpty(order);
         await _orderRepository.DeleteAsync(order);
     }
 
+    [CacheAspect(1)]
+    [PerformanceAspect(0)]
+    [DebugWriteAspect(Message = "Order listing started")]
+    [DebugWriteSuccessAspect(Message = "Order listing completed.")]
     public IList<Order> GetAll()
     {
         return _orderRepository.GetAll().ToList();
     }
 
+    [CacheAspect(1)]
+    [PerformanceAspect(0)]
+    [DebugWriteAspect(Message = "Order listing started")]
+    [DebugWriteSuccessAspect(Message = "Order listing completed.")]
     public async Task<IList<Order>> GetAllAsync()
     {
         var result = await _orderRepository.GetAllAsync();
@@ -119,11 +137,17 @@ public class OrderManager : IOrderService
         return await _orderRepository.GetAsync(o => o.Id == id);
     }
 
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Order updated.")]
     public Order Update(Order order)
     {
         return _orderRepository.Update(order);
     }
+
     [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IOrderService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Order updated.")]
     public async Task<Order> UpdateAsync(Order order)
     {
         return await _orderRepository.UpdateAsync(order);

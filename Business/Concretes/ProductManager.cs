@@ -1,14 +1,13 @@
 ﻿using Business.Abstracts;
 using Business.Validations;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Logging;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
+using Core.Aspects.Autofac.Validation;
 using DataAccess.Abstracts;
-using DataAccess.Concretes;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Business.Concretes;
 
@@ -22,35 +21,55 @@ public class ProductManager : IProductService
         _productRepository = productRepository;
         _productValidations = productValidations;
     }
+
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Product added.")]
     public Product Add(Product product)
     {
         return _productRepository.Add(product);
     }
 
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Product added.")]
     public async Task<Product> AddAsync(Product product)
     {
         return await _productRepository.AddAsync(product);
     }
 
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [ValidationAspect(typeof(DeleteProductValidations))]
+    [DebugWriteSuccessAspect(Message = "Product deleted.")]
+
     public void DeleteById(Guid id)
     {
-        var product = _productRepository.Get(c => c.Id == id);
-        _productValidations.ProductMustNotBeEmpty(product).Wait();
+        var product = _productRepository.Get(p => p.Id == id);
         _productRepository.Delete(product);
     }
 
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [ValidationAspect(typeof(DeleteCategoryValidations))]
+    [DebugWriteSuccessAspect(Message = "Product deleted.")]
     public async Task DeleteByIdAsync(Guid id)
     {
-        var product = _productRepository.Get(c => c.Id == id);
-        await _productValidations.ProductMustNotBeEmpty(product);
+        var product = _productRepository.Get(p => p.Id == id);
         await _productRepository.DeleteAsync(product);
     }
 
+    [CacheAspect(1)]
+    [PerformanceAspect(0)]
+    [DebugWriteAspect(Message = "Product listing started")]
+    [DebugWriteSuccessAspect(Message = "Product listing completed.")]
     public IList<Product> GetAll()
     {
         return _productRepository.GetAll().ToList();
     }
 
+    [CacheAspect(1)]
+    [PerformanceAspect(0)]
+    [DebugWriteAspect(Message = "Product listing started")]
+    [DebugWriteSuccessAspect(Message = "Product listing completed.")]
     public async Task<IList<Product>> GetAllAsync()
     {
         var result = await _productRepository.GetAllAsync();
@@ -89,11 +108,16 @@ public class ProductManager : IProductService
         return await _productRepository.GetAsync(p => p.Id == id);
     }
 
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Product updated.")]
     public Product Update(Product product)
     {
         return _productRepository.Update(product);
     }
-
+    [TransactionScopeAspect]
+    [CacheRemoveAspect("Business.Abstracts.IProductService.GetAllAsync")]
+    [DebugWriteSuccessAspect(Message = "Product updated.")]
     public async Task<Product> UpdateAsync(Product product)
     {
         return await _productRepository.UpdateAsync(product);
